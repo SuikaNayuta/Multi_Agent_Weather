@@ -1,0 +1,114 @@
+# 系统部署文档
+
+## 1. 环境要求
+
+本系统基于 Python 开发，运行前请确保您的环境满足以下要求：
+
+- **操作系统**: Windows 10/11, macOS, 或 Linux
+- **Python 版本**: Python 3.8 及以上 (建议使用 Python 3.9 或 3.10)
+- **网络**: 需要能够访问互联网以调用 DeepSeek API 和 Open-Meteo 天气数据 API
+
+## 2. 安装步骤
+
+### 2.1 获取代码
+
+将项目压缩包解压或克隆到本地目录，例如 `D:\AAAVerilog\Multi_Agent`。
+
+### 2.2 安装依赖库
+
+系统依赖 `streamlit`, `pandas`, `plotly` 等第三方库。请在命令行（终端）中进入项目根目录，并执行以下命令安装：
+
+```bash
+cd D:\AAAVerilog\Multi_Agent
+pip install -r requirements.txt
+```
+
+如果下载速度较慢，建议使用国内镜像源：
+
+```bash
+pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+```
+
+`requirements.txt` 文件包含以下核心依赖：
+- streamlit
+- pandas
+- numpy
+- plotly
+- requests
+- python-dotenv
+
+## 3. 系统配置
+
+### 3.1 API Key 配置
+
+系统默认使用 DeepSeek LLM 进行自然语言解析。您需要在配置文件中填入有效的 API Key。
+
+打开文件 `air_quality_system/config.py`，找到 `DEEPSEEK_CONFIG` 配置项：
+
+```python
+DEEPSEEK_CONFIG = {
+    "api_key": "您的DeepSeek_API_Key",  # 请在此处填入您的 Key
+    "base_url": "https://api.deepseek.com",
+    "model": "deepseek-chat",
+    "temperature": 0.1
+}
+```
+
+> **注意**: 如果没有 API Key，系统将回退到默认的解析规则或使用 Mock 模式。
+
+### 3.2 其他配置
+
+在 `air_quality_system/config.py` 中还可以配置：
+- `API_RETRIES`: API 请求重试次数
+- `TIMEOUT`: 请求超时时间
+- `DATA_SOURCE`: 数据源配置 (默认为 "open_meteo")
+
+## 4. 系统运行
+
+在项目根目录下，使用 Streamlit 启动 Web 界面：
+
+```bash
+streamlit run air_quality_system/app.py
+```
+
+启动成功后，浏览器将自动打开 `http://localhost:8501`。如果未自动打开，请手动复制链接访问。
+
+## 5. 常见问题排查 (Troubleshooting)
+
+### 5.1 端口被占用
+
+**现象**: 启动时提示 `Port 8501 is already in use`.
+
+**解决方法**:
+指定其他端口启动：
+```bash
+streamlit run air_quality_system/app.py --server.port 8502
+```
+
+### 5.2 依赖安装失败
+
+**现象**: `pip install` 报错，提示缺少 C++ 编译环境或 wheel 构建失败。
+
+**解决方法**:
+通常发生在 `pandas` 或 `numpy` 安装时。尝试升级 pip 并使用预编译的 wheel 包：
+```bash
+python -m pip install --upgrade pip
+pip install -r requirements.txt --only-binary=:all:
+```
+
+### 5.3 API 调用超时或失败
+
+**现象**: 界面一直显示“运行中...”，最终报错或无数据。
+
+**解决方法**:
+1. 检查网络连接。
+2. 确认 DeepSeek API Key 是否有效。
+3. 检查 `config.py` 中的 `TIMEOUT` 设置，可适当调大（如 30 秒）。
+4. 如果是 Open-Meteo 天气 API 失败，可能是网络波动，系统会自动尝试使用 Mock 数据或合成数据作为兜底。
+
+### 5.4 地图或图表无法显示
+
+**现象**: 页面空白或提示渲染错误。
+
+**解决方法**:
+确保浏览器支持 WebGL（大多数现代浏览器均支持）。尝试刷新页面或更换浏览器（推荐 Chrome 或 Edge）。
